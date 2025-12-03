@@ -45,9 +45,12 @@ A smart Discord bot that manages support tickets and uses AI to automatically re
    ```env
    DISCORD_BOT_TOKEN=your_token_here
    DEV_MODE=true # Optional
+   ...
    ```
 
-4. **Run the Bot**
+   Look at the `.env.example`
+
+3. **Run the Bot**
    ```bash
    python main.py
    ```
