@@ -1,6 +1,16 @@
-# Discord AI Ticket Bot
+<img 
+  src="https://github.com/user-attachments/assets/91dbda5e-fbe2-41da-802c-b3266cb49ed8"
+  alt="ticket-iq"
+  width="180"
+  align="left"
+  style="margin-right: 16px;"
+/>
+
+# Discord AI Ticket Bot - TicketIQ
 
 A smart Discord bot that manages support tickets and uses AI to automatically respond to user inquiries.
+
+<br clear="left" />
 
 ## 🚀 Features
 
