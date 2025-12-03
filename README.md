@@ -6,7 +6,7 @@
   style="margin-right: 16px;"
 />
 
-# Discord AI Ticket Bot - TicketIQ
+# (WIP) Discord AI Ticket Bot - TicketIQ
 
 A smart Discord bot that manages support tickets and uses AI to automatically respond to user inquiries.
 
