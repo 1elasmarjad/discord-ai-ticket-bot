@@ -54,6 +54,4 @@ A smart Discord bot that manages support tickets and uses AI to automatically re
 
 ## 📝 Usage
 
-- Use `/button` (development command) to spawn the ticket creation panel.
-- Users can click "Open Support Ticket" to start a private thread/channel.
-- The AI agent will attempt to assist with the user's inquiry.
+WIP
