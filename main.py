@@ -1,17 +1,25 @@
 import discord
+from discord import Bot
 from settings import settings
+import structlog
+
+log = structlog.get_logger()
 
 bot = discord.Bot()
 
 
 @bot.event
 async def on_ready():
-    print(f"{bot.user} is ready and online!")
+    log.info(f"{bot.user} is ready and online!", dev_mode=settings.dev_mode)
 
 
-@bot.slash_command(name="hello", description="Say hello to the bot")
-async def hello(ctx: discord.ApplicationContext):
-    await ctx.respond("Hey!")
+def load_cogs(bot: Bot):
+    bot.load_extension("commands.development")
 
 
-bot.run(settings.discord_bot_token)
+if __name__ == "__main__":
+    load_cogs(bot)
+
+    log.info("Cogs loaded")
+
+    bot.run(settings.discord_bot_token)
