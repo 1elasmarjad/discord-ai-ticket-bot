@@ -5,6 +5,7 @@ description = "A ticket bot for Discord that uses AI to answer on your behalf"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "litellm>=1.80.7",
     "py-cord>=2.6.1",
     "pydantic-settings>=2.12.0",
     "python-dotenv>=1.2.1",

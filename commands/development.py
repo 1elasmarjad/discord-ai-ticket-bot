@@ -2,6 +2,7 @@ import discord
 from discord import Bot, ApplicationContext
 from discord.ext import commands
 from components.open_ticket import OpenTicketView
+from embeds.open_ticket import OpenTicketEmbed
 
 
 class Development(commands.Cog):
@@ -15,7 +16,7 @@ class Development(commands.Cog):
     @discord.slash_command(name="button", description="Show a custom button component")
     async def show_button(self, ctx: ApplicationContext):
         view = OpenTicketView()
-        await ctx.respond("Here is a custom button:", view=view)
+        await ctx.respond(embed=OpenTicketEmbed(), view=view)
 
 
 def setup(bot: Bot):
