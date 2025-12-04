@@ -29,7 +29,10 @@ async def on_ready():
 
 
 def load_cogs(bot: Bot):
-    bot.load_extension("commands.development")
+    if settings.dev_mode:
+        bot.load_extension("commands.development")
+
+    bot.load_extension("commands.setup")
 
 
 if __name__ == "__main__":

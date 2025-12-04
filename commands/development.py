@@ -1,11 +1,11 @@
 import discord
 from discord import Bot, ApplicationContext
-from discord.ext import commands
-from components.open_ticket import OpenTicketView
+from discord.ext.commands import Cog
+from views.open_ticket import OpenTicketView
 from embeds.open_ticket import OpenTicketEmbed
 
 
-class Development(commands.Cog):
+class Development(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
