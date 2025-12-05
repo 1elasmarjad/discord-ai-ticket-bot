@@ -2,7 +2,7 @@ from litellm.types.utils import Message
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from handlers.knowledge import KnowledgeHandler
+    from handlers.knowledge_handler import KnowledgeHandler
 else:
     KnowledgeHandler = Any
 
