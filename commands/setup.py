@@ -1,8 +1,10 @@
 import discord
 from discord import Bot, ApplicationContext, CategoryChannel, Member, Option, Role
 from discord.ext.commands import Cog
+from sqlmodel import Session
 
 from embeds.responses import ErrorEmbed
+from database import engine, Guild
 import structlog
 
 log = structlog.get_logger()
@@ -30,6 +32,18 @@ class Setup(Cog):
         ),
     ):
         try:
+            # Check if guild already exists in database
+            with Session(engine) as session:
+                existing_guild = session.get(Guild, ctx.guild.id)
+                if existing_guild is not None:
+                    await ctx.respond(
+                        embed=ErrorEmbed(
+                            "This server has already been set up. Please use other commands to manage your ticket system."
+                        ),
+                        ephemeral=True,
+                    )
+                    return
+
             bot_member: Member | None = ctx.guild.get_member(self.bot.user.id)
 
             if not bot_member:
@@ -75,7 +89,12 @@ class Setup(Cog):
                     embed_links=True,
                 )
 
-            # TODO: save the category id to the database
+            # Save the guild and category ID to the database
+            with Session(engine) as session:
+                guild = Guild(id=ctx.guild.id, category_channel_id=category.id)
+                session.add(guild)
+                session.commit()
+                session.refresh(guild)
 
             log.info(
                 "Ticket category setup completed successfully",
