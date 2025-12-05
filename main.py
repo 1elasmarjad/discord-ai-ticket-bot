@@ -28,6 +28,11 @@ async def on_ready():
     log.info(f"{bot.user} is ready and online!", dev_mode=settings.dev_mode)
 
 
+@bot.event
+async def on_error(event, *args, **kwargs):
+    log.error(f"Error in {event}", exc_info=True)
+
+
 def load_cogs(bot: Bot):
     if settings.dev_mode:
         bot.load_extension("commands.development")
