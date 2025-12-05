@@ -4,7 +4,7 @@ from settings import settings
 import structlog
 from rich.console import Console
 from datetime import datetime
-from views.open_ticket import OpenTicketView
+from views.open_ticket_view import OpenTicketView
 
 log = structlog.get_logger()
 console = Console()

@@ -1,7 +1,7 @@
 import discord
 from discord import Bot, ApplicationContext, CategoryChannel, Member, Option, Role
 from discord.ext.commands import Cog
-from sqlmodel import Session
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from embeds.responses import ErrorEmbed
 from database import engine, Guild
@@ -33,8 +33,8 @@ class Setup(Cog):
     ):
         try:
             # Check if guild already exists in database
-            with Session(engine) as session:
-                existing_guild = session.get(Guild, ctx.guild.id)
+            async with AsyncSession(engine) as session:
+                existing_guild = await session.get(Guild, ctx.guild.id)
                 if existing_guild is not None:
                     await ctx.respond(
                         embed=ErrorEmbed(
@@ -90,11 +90,11 @@ class Setup(Cog):
                 )
 
             # Save the guild and category ID to the database
-            with Session(engine) as session:
+            async with AsyncSession(engine) as session:
                 guild = Guild(id=ctx.guild.id, category_channel_id=category.id)
                 session.add(guild)
-                session.commit()
-                session.refresh(guild)
+                await session.commit()
+                await session.refresh(guild)
 
             log.info(
                 "Ticket category setup completed successfully",

@@ -1,7 +1,7 @@
 import discord
 from discord import Bot, ApplicationContext
 from discord.ext.commands import Cog
-from views.open_ticket import OpenTicketView
+from views.open_ticket_view import OpenTicketView
 from embeds.open_ticket import OpenTicketEmbed
 from embeds.responses import ErrorEmbed, SuccessEmbed
 import structlog

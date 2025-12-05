@@ -12,3 +12,18 @@ class OpenTicketEmbed(discord.Embed):
         )
 
         self.set_footer(text="We're here to help!")
+
+
+class TicketCreatedEmbed(discord.Embed):
+    """Embed sent when a ticket is successfully created."""
+
+    def __init__(self, ticket_channel_mention: str):
+        super().__init__(
+            title="🎫 Ticket Opened",
+            description=(
+                f"You just opened a ticket in {ticket_channel_mention}.\n\n"
+                "A staff member will be with you shortly.\n"
+                "Please explain your issue in the ticket channel while you wait!"
+            ),
+            color=discord.Colour.green(),
+        )
