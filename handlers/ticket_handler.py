@@ -23,17 +23,20 @@ class TicketHandler:
 
                 next_number = max_number + 1
 
-                ticket = TicketChannel(
-                    guild_id=guild_id, ticket_number=next_number, user_id=user.id
-                )
-                session.add(ticket)
-                await session.flush()
-
                 ticket_channel: TextChannel = (
                     await self.ticketable_guild.create_ticket_channel(
                         suffix=f"{next_number:04d}", user=user
                     )
                 )
+
+                ticket = TicketChannel(
+                    id=ticket_channel.id,
+                    guild_id=guild_id,
+                    ticket_number=next_number,
+                    user_id=user.id,
+                )
+
+                session.add(ticket)
 
         return ticket_channel
 

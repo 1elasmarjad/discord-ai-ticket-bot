@@ -2,9 +2,13 @@ import discord
 from discord.ui import View, Button
 from discord import Interaction, TextChannel
 
-from embeds.close_ticket import TicketClosedEmbed, CloseTicketConfirmEmbed
+from embeds.close_ticket import (
+    TicketClosedEmbed,
+    CloseTicketConfirmEmbed,
+    TicketClosedDMEmbed,
+)
 from sqlmodel.ext.asyncio.session import AsyncSession
-from database import engine
+from database import engine, TicketChannel
 
 
 class CloseTicketView(View):
@@ -60,6 +64,14 @@ class CloseTicketConfirmView(View):
 
         ticket_handler = TicketHandler(ticketable_guild)
 
+        async with AsyncSession(engine) as session:
+            ticket = await session.get(TicketChannel, self.channel.id)
+            if not ticket:
+                raise ValueError(
+                    f"Ticket channel {self.channel.id} not found in database"
+                )
+            opener_user_id = ticket.user_id
+
         await ticket_handler.close_ticket(channel=self.channel)
 
         await interaction.response.edit_message(
@@ -73,6 +85,16 @@ class CloseTicketConfirmView(View):
         # Disable the original close button
         self.original_view.children[0].disabled = True
         await self.original_message.edit(view=self.original_view)
+
+        opener = guild.get_member(opener_user_id)
+        if opener:
+            closed_by_user = interaction.user.id == opener_user_id
+            dm_embed = TicketClosedDMEmbed(self.channel.mention, closed_by_user)
+
+            try:
+                await opener.send(embed=dm_embed)
+            except discord.Forbidden:
+                pass
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.secondary, emoji="❌")
     async def cancel_button(self, button: Button, interaction: Interaction):
