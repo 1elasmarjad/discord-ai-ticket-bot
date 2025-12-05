@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlmodel.ext.asyncio.session import AsyncSession
 from database import TicketChannel, engine
 from utils.ticketable_guild import TicketableGuild
@@ -11,7 +12,7 @@ class TicketHandler:
     def __init__(self, ticketable_guild: TicketableGuild):
         self.ticketable_guild = ticketable_guild
 
-    async def open(self, *, user: Member):
+    async def open_ticket(self, *, user: Member):
         guild_id = self.ticketable_guild.database_guild.id
 
         async with AsyncSession(engine) as session:
@@ -36,10 +37,24 @@ class TicketHandler:
 
         return ticket_channel
 
-    async def close(
+    async def close_ticket(
         self,
+        *,
+        channel: TextChannel,
     ):
-        pass
+        async with AsyncSession(engine) as session:
+            async with session.begin():
+                ticket = await session.get(TicketChannel, channel.id)
+
+                if not ticket:
+                    raise ValueError(
+                        f"Ticket channel {channel.id} not found in database"
+                    )
+
+                ticket.closed_at = datetime.now()
+                session.add(ticket)
+
+        await self.ticketable_guild.close_ticket_channel(channel=channel)
 
     @property
     def chat(self) -> "TicketChatHistory":

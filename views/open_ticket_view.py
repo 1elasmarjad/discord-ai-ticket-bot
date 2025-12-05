@@ -33,7 +33,7 @@ class OpenTicketView(View):
 
         ticket_handler = TicketHandler(ticketable_guild)
 
-        ticket_channel = await ticket_handler.open(user=interaction.user)
+        ticket_channel = await ticket_handler.open_ticket(user=interaction.user)
 
         ticket_embed = TicketCreatedEmbed(ticket_channel.mention)
 

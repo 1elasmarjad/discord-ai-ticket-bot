@@ -1,6 +1,9 @@
 from discord import Guild, CategoryChannel, Member, TextChannel
 from sqlmodel.ext.asyncio.session import AsyncSession
-from database import Guild as DatabaseGuild, engine
+from database import Guild as DatabaseGuild, TicketChannel, engine
+
+from embeds.close_ticket import CloseTicketEmbed
+from views.close_ticket_view import CloseTicketView
 
 
 class TicketableGuild:
@@ -33,7 +36,32 @@ class TicketableGuild:
             embed_links=True,
         )
 
+        await channel.send(
+            embed=CloseTicketEmbed(),
+            view=CloseTicketView(channel.id),
+        )
+
+        await channel.send(
+            content=f"Hey {user.mention} I'm an AI assistant! I'll try my best to help you out\n\n\
+Please **explain your issue** in the ticket channel while you wait for staff to assist you"
+        )
+
         return channel
+
+    async def close_ticket_channel(self, *, channel: TextChannel):
+        async with AsyncSession(engine) as session:
+            ticket = await session.get(TicketChannel, channel.id)
+
+            if not ticket:
+                raise ValueError(f"Ticket channel {channel.id} not found in database")
+
+            user = self.guild.get_member(ticket.user_id)
+
+            if not user:
+                raise ValueError(f"User {ticket.user_id} not found in guild")
+
+            # Remove permissions by setting overwrite to None
+            await channel.set_permissions(user, overwrite=None)
 
     @classmethod
     async def create(cls, guild: Guild, session: AsyncSession) -> "TicketableGuild":
