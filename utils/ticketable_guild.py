@@ -4,7 +4,7 @@ from database import Guild as DatabaseGuild, TicketChannel, engine
 
 
 class TicketableGuild:
-    """A guild that can have tickets."""
+    """A Discord guild that can have tickets."""
 
     def __init__(self, guild: Guild, database_guild: DatabaseGuild):
         self.guild = guild
@@ -13,6 +13,7 @@ class TicketableGuild:
     async def available_category_channel(self) -> CategoryChannel | None:
         if self.database_guild.category_channel_id:
             return self.guild.get_channel(self.database_guild.category_channel_id)
+
         return None
 
     async def create_ticket_channel(self, *, suffix: str, user: Member) -> TextChannel:
@@ -47,11 +48,10 @@ class TicketableGuild:
             if not user:
                 raise ValueError(f"User {ticket.user_id} not found in guild")
 
-            # Remove permissions by setting overwrite to None
             await channel.set_permissions(user, overwrite=None)
 
     @classmethod
-    async def create(cls, guild: Guild, session: AsyncSession) -> "TicketableGuild":
+    async def load(cls, guild: Guild, session: AsyncSession) -> "TicketableGuild":
         db_guild: DatabaseGuild | None = await session.get(DatabaseGuild, guild.id)
 
         if not db_guild:

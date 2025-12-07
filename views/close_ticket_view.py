@@ -60,7 +60,7 @@ class CloseTicketConfirmView(View):
         guild = interaction.guild
 
         async with AsyncSession(engine) as session:
-            ticketable_guild = await TicketableGuild.create(guild, session)
+            ticketable_guild = await TicketableGuild.load(guild, session)
 
         ticket_handler = TicketHandler(ticketable_guild)
 
