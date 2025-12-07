@@ -10,14 +10,14 @@ class TicketableGuild:
         self.guild = guild
         self.database_guild = database_guild
 
-    async def available_category_channel(self) -> CategoryChannel | None:
+    async def get_category_channel(self) -> CategoryChannel | None:
         if self.database_guild.category_channel_id:
             return self.guild.get_channel(self.database_guild.category_channel_id)
 
         return None
 
     async def create_ticket_channel(self, *, suffix: str, user: Member) -> TextChannel:
-        category: CategoryChannel | None = await self.available_category_channel()
+        category: CategoryChannel | None = await self.get_category_channel()
 
         if not category:
             raise ValueError("No available category channel found")

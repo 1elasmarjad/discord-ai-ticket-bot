@@ -1,8 +1,8 @@
 from datetime import datetime
 from sqlmodel.ext.asyncio.session import AsyncSession
 from database import TicketChannel, engine
+from handlers.ticket_chat_history_handler import TicketChatHistoryHandler
 from utils.ticketable_guild import TicketableGuild
-from litellm.types.utils import Message
 from discord import TextChannel, Member
 
 
@@ -58,23 +58,3 @@ class TicketHandler:
                 session.add(ticket)
 
         await self.ticketable_guild.close_ticket_channel(channel=channel)
-
-    @property
-    def chat(self) -> "TicketChatHistory":
-        return TicketChatHistory(None)  # TODO: add the text channel id
-
-
-class TicketChatHistory:
-    def __init__(self, text_channel_id: int):
-        self.text_channel_id = text_channel_id
-
-    async def push(
-        self,
-        message: Message,
-    ):
-        pass
-
-    async def fetch(
-        self,
-    ) -> list[Message]:
-        pass
