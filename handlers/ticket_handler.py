@@ -1,7 +1,6 @@
 from datetime import datetime
 from sqlmodel.ext.asyncio.session import AsyncSession
 from database import TicketChannel, engine
-from handlers.ticket_chat_history_handler import TicketChatHistoryHandler
 from utils.ticketable_guild import TicketableGuild
 from discord import TextChannel, Member
 
@@ -9,11 +8,11 @@ from discord import TextChannel, Member
 class TicketHandler:
     """Handles ticket creation and management."""
 
-    def __init__(self, ticketable_guild: TicketableGuild):
-        self.ticketable_guild = ticketable_guild
+    def __init__(self, guild: TicketableGuild):
+        self.guild = guild
 
     async def open_ticket(self, *, user: Member):
-        guild_id = self.ticketable_guild.database_guild.id
+        guild_id = self.guild.id
 
         async with AsyncSession(engine) as session:
             async with session.begin():
@@ -23,10 +22,8 @@ class TicketHandler:
 
                 next_number = max_number + 1
 
-                ticket_channel: TextChannel = (
-                    await self.ticketable_guild.create_ticket_channel(
-                        suffix=f"{next_number:04d}", user=user
-                    )
+                ticket_channel: TextChannel = await self.guild.create_ticket_channel(
+                    suffix=f"{next_number:04d}", user=user
                 )
 
                 ticket = TicketChannel(
@@ -57,4 +54,4 @@ class TicketHandler:
                 ticket.closed_at = datetime.now()
                 session.add(ticket)
 
-        await self.ticketable_guild.close_ticket_channel(channel=channel)
+        await self.guild.close_ticket_channel(channel=channel)

@@ -1,5 +1,6 @@
 import discord
-from discord import Bot
+from discord import Bot, Message
+from handlers.message_ingest_handler import MessageIngestHandler
 from settings import settings
 import structlog
 from rich.console import Console
@@ -9,7 +10,12 @@ from views.open_ticket_view import OpenTicketView
 log = structlog.get_logger()
 console = Console()
 
-bot = discord.Bot()
+intents = discord.Intents.default()
+intents.message_content = True
+
+bot = discord.Bot(
+    intents=intents,
+)
 
 _spinner = None
 
@@ -55,6 +61,16 @@ async def on_ready():
 @bot.event
 async def on_error(event, *args, **kwargs):
     log.error(f"Error in {event}", exc_info=True)
+
+
+@bot.event
+async def on_message(message: Message):
+    message_ingest = MessageIngestHandler()
+
+    if await message_ingest.ignore(message):
+        return
+
+    await message_ingest.process(message)
 
 
 def load_cogs(bot: Bot):

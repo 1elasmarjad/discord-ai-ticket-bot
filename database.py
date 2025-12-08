@@ -1,7 +1,9 @@
 import asyncio
+from sqlalchemy import Column, JSON
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlmodel import Field, SQLModel, func, select
 from datetime import datetime
+from litellm.types.utils import Message
 from settings import settings
 
 
@@ -17,6 +19,7 @@ class TicketChannel(SQLModel, table=True):
     guild_id: int = Field(foreign_key="guild.id")
     ticket_number: int
     user_id: int
+    messages: list[Message] = Field(default_factory=list, sa_column=Column(JSON))
 
     created_at: datetime = Field(default_factory=datetime.now)
     closed_at: datetime | None = None

@@ -10,6 +10,10 @@ class TicketableGuild:
         self.guild = guild
         self.database_guild = database_guild
 
+    @property
+    def id(self) -> int:
+        return self.guild.id
+
     async def get_category_channel(self) -> CategoryChannel | None:
         if self.database_guild.category_channel_id:
             return self.guild.get_channel(self.database_guild.category_channel_id)
