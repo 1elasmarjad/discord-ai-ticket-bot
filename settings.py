@@ -10,6 +10,8 @@ class Settings(BaseSettings):
 
     dev_mode: bool = Field(validation_alias="DEV_MODE", default=False)
 
+    openrouter_api_key: str = Field(validation_alias="OPENROUTER_API_KEY")
+
     @field_validator("dev_mode", mode="before")
     @classmethod
     def parse_bool(cls, v):

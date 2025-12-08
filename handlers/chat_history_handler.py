@@ -1,24 +1,16 @@
+from typing import Literal
 from litellm.types.utils import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
-
-from enum import Enum
-
 from pydantic import BaseModel
-
 from database import engine, TicketChannel
-
 import structlog
 
 log = structlog.get_logger()
 
 
-class RoleType(str, Enum):
-    ASSISTANT = "assistant"
-    USER = "user"
-
-
 class MessageInput(BaseModel):
+    chat_role: Literal["support", "ticket_owner"]
     user_id: int
     username: str
     content: str
@@ -31,12 +23,12 @@ class ChatHistoryHandler:
     def __init__(self, ticket_channel_id: int):
         self.ticket_channel_id = ticket_channel_id
 
-    async def push(self, message: MessageInput, role: RoleType):
+    async def push(self, message: MessageInput, role: Literal["assistant", "user"]):
         raw_json: str = message.model_dump_json()
 
         msg = Message(
             content=raw_json,
-            role=role.value,
+            role=role,
         )
 
         async with AsyncSession(engine) as session:
