@@ -25,7 +25,6 @@ Recent conversation:
 
 Is the user done and ready for a response?"""
 
-# Type alias for the response callback
 ResponseCallback = Callable[[int], Awaitable[None]]
 
 

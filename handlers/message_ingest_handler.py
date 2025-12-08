@@ -5,15 +5,37 @@ import structlog
 from database import TicketChannel, engine
 from handlers.chat_history_handler import MessageInput, ChatHistoryHandler
 from handlers.debounce_handler import DebounceHandler
+from utils.ticketable_guild import (
+    get_ticket_channel,
+    send_ticket_message,
+    ticket_typing,
+)
 
 log = structlog.get_logger()
 
 
 async def _trigger_agent_response(channel_id: int):
-    """Placeholder for triggering the AI agent response."""
+    """Generate and send an AI response to the ticket channel."""
+    from handlers.agent_handler import AgentHandler
+
     log.info("Agent response triggered", channel_id=channel_id)
-    # TODO: Implement actual agent response
-    pass
+
+    if not get_ticket_channel(channel_id):
+        log.error("Channel not found", channel_id=channel_id)
+        return
+
+    chat = ChatHistoryHandler(channel_id)
+    messages = await chat.fetch()
+
+    agent = AgentHandler()
+
+    async with ticket_typing(channel_id):
+        response = await agent.generate_response(messages)
+
+    await send_ticket_message(channel_id, response)
+    await chat.push_assistant(response)
+
+    log.info("Agent response sent", channel_id=channel_id)
 
 
 class MessageIngestHandler:

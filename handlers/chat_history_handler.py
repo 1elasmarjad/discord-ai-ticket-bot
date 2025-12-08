@@ -48,6 +48,29 @@ class ChatHistoryHandler:
             message=msg.model_dump(),
         )
 
+    async def push_assistant(self, content: str):
+        """Push an assistant message to the chat history."""
+        msg = Message(
+            content=content,
+            role="assistant",
+        )
+
+        async with AsyncSession(engine) as session:
+            async with session.begin():
+                result = await session.execute(
+                    select(TicketChannel).where(
+                        TicketChannel.id == self.ticket_channel_id
+                    )
+                )
+
+                ticket = result.scalars().one()
+                ticket.messages = ticket.messages + [msg.model_dump()]
+
+        log.debug(
+            "Pushed assistant message to ticket channel",
+            ticket_channel_id=self.ticket_channel_id,
+        )
+
     async def fetch(self) -> list[Message]:
         async with AsyncSession(engine) as session:
             result = await session.execute(

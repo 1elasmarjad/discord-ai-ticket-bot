@@ -1,6 +1,43 @@
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
+
 from discord import Guild, CategoryChannel, Member, TextChannel
 from sqlmodel.ext.asyncio.session import AsyncSession
 from database import Guild as DatabaseGuild, TicketChannel, engine
+
+
+def get_ticket_channel(channel_id: int) -> TextChannel | None:
+    """Get a ticket channel by ID from the bot."""
+    from main import bot
+
+    channel = bot.get_channel(channel_id)
+    if channel and isinstance(channel, TextChannel):
+        return channel
+    return None
+
+
+async def send_ticket_message(channel_id: int, content: str) -> None:
+    """Send a message to a ticket channel."""
+    channel = get_ticket_channel(channel_id)
+    if channel:
+        await channel.send(content)
+
+
+@asynccontextmanager
+async def ticket_typing(channel_id: int) -> AsyncGenerator[None, None]:
+    """Context manager to show typing indicator in a ticket channel.
+
+    Usage:
+        async with ticket_typing(channel_id):
+            # do work while typing indicator is shown
+            response = await generate_response()
+    """
+    channel = get_ticket_channel(channel_id)
+    if channel:
+        async with channel.typing():
+            yield
+    else:
+        yield
 
 
 class TicketableGuild:
