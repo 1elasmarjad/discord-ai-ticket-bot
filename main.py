@@ -49,11 +49,16 @@ def register_persistent_views(bot: Bot):
 
 @bot.event
 async def on_ready():
+    from utils.ticketable_guild import set_bot_instance
+
     global _spinner
     if _spinner:
         _spinner.stop()
         _spinner = None
     log.info(f"{bot.user} is ready and online!", dev_mode=settings.dev_mode)
+
+    # Set bot instance for ticket channel operations
+    set_bot_instance(bot)
 
     register_persistent_views(bot)
 

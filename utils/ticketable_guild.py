@@ -1,24 +1,50 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, TYPE_CHECKING
 
 from discord import Guild, CategoryChannel, Member, TextChannel
 from sqlmodel.ext.asyncio.session import AsyncSession
 from database import Guild as DatabaseGuild, TicketChannel, engine
 
+if TYPE_CHECKING:
+    from discord import Bot
 
-def get_ticket_channel(channel_id: int) -> TextChannel | None:
+import structlog
+
+log = structlog.get_logger()
+
+# Store bot instance globally to avoid circular imports
+_bot_instance: "Bot | None" = None
+
+
+def set_bot_instance(bot: "Bot") -> None:
+    """Set the bot instance for use in ticket channel operations."""
+    global _bot_instance
+    _bot_instance = bot
+
+
+async def get_ticket_channel(channel_id: int) -> TextChannel | None:
     """Get a ticket channel by ID from the bot."""
-    from main import bot
+    if _bot_instance is None:
+        log.error("Bot instance not set", channel_id=channel_id)
+        return None
 
-    channel = bot.get_channel(channel_id)
-    if channel and isinstance(channel, TextChannel):
-        return channel
+    try:
+        channel = await _bot_instance.fetch_channel(channel_id)
+        if isinstance(channel, TextChannel):
+            return channel
+        log.warning(
+            "Channel is not a TextChannel",
+            channel_id=channel_id,
+            channel_type=type(channel).__name__,
+        )
+    except Exception as e:
+        log.error("Failed to fetch channel", channel_id=channel_id, error=str(e))
     return None
 
 
 async def send_ticket_message(channel_id: int, content: str) -> None:
     """Send a message to a ticket channel."""
-    channel = get_ticket_channel(channel_id)
+    channel = await get_ticket_channel(channel_id)
     if channel:
         await channel.send(content)
 
@@ -32,7 +58,7 @@ async def ticket_typing(channel_id: int) -> AsyncGenerator[None, None]:
             # do work while typing indicator is shown
             response = await generate_response()
     """
-    channel = get_ticket_channel(channel_id)
+    channel = await get_ticket_channel(channel_id)
     if channel:
         async with channel.typing():
             yield

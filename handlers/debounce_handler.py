@@ -20,9 +20,6 @@ Return ONLY "yes" or "no":
 - "yes" = The user has completed their question/message and is waiting for help
 - "no" = The user indicated they will send more (e.g., "brb", "one sec", "let me check"), OR their message appears incomplete/cut off
 
-Recent conversation:
-{conversation}
-
 Is the user done and ready for a response?"""
 
 ResponseCallback = Callable[[int], Awaitable[None]]
@@ -35,7 +32,7 @@ class DebounceHandler:
         self,
         channel_id: int,
         on_ready: ResponseCallback,
-        delay_seconds: float = 5.0,
+        delay_seconds: float = 1.0,
     ):
         self.channel_id = channel_id
         self.on_ready = on_ready
@@ -53,7 +50,7 @@ class DebounceHandler:
 
                 # Fetch chat history and check if user is done
                 chat = ChatHistoryHandler(self.channel_id)
-                messages = await chat.fetch()
+                messages: list[Message] = await chat.fetch()
 
                 if await self._check_if_user_done(messages):
                     await self.on_ready(self.channel_id)
@@ -73,19 +70,12 @@ class DebounceHandler:
             return False
 
         recent = messages[-5:]
-        conversation_text = "\n".join(f"{msg.role}: {msg.content}" for msg in recent)
+        system_prompt = Message(content=IDLE_CHECK_PROMPT, role="system")
+        messages = [system_prompt] + recent
 
         try:
             response = await acompletion(
-                model="openrouter/openai/gpt-4o-mini",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": IDLE_CHECK_PROMPT.format(
-                            conversation=conversation_text
-                        ),
-                    }
-                ],
+                model="openrouter/openai/gpt-4o-mini", messages=messages
             )
 
             answer = response.choices[0].message.content.strip().lower()

@@ -20,7 +20,7 @@ async def _trigger_agent_response(channel_id: int):
 
     log.info("Agent response triggered", channel_id=channel_id)
 
-    if not get_ticket_channel(channel_id):
+    if not await get_ticket_channel(channel_id):
         log.error("Channel not found", channel_id=channel_id)
         return
 
