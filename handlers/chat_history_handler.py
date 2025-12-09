@@ -1,8 +1,9 @@
+from datetime import datetime
 from typing import Literal
 from litellm.types.utils import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from database import engine, TicketChannel
 import structlog
 
@@ -15,6 +16,7 @@ class MessageInput(BaseModel):
     username: str
     content: str
     attachment_data: bytes | None = None
+    timestamp: datetime = Field(default_factory=datetime.now)
 
 
 class ChatHistoryHandler:

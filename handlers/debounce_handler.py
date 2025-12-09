@@ -1,8 +1,10 @@
 import asyncio
+import json
 from typing import Awaitable, Callable
 
 from litellm import acompletion
 from litellm.types.utils import Message
+from pydantic import BaseModel
 import structlog
 
 from handlers.chat_history_handler import ChatHistoryHandler
@@ -16,11 +18,29 @@ IDLE_CHECK_PROMPT = """You are analyzing a support ticket conversation to determ
 
 Review the recent messages and determine if the user appears to be DONE typing and ready for a response.
 
-Return ONLY "yes" or "no":
-- "yes" = The user has completed their question/message and is waiting for help
-- "no" = The user indicated they will send more (e.g., "brb", "one sec", "let me check"), OR their message appears incomplete/cut off
+You will receive:
+- The full recent conversation in this ticket.
+- Messages may be from "user" (the person asking for help) or "agent/bot" (the support side).
+- Messages are in order from oldest to newest.
 
-Is the user done and ready for a response?"""
+Focus on the messages from the user in need of support.
+
+Decide if the user seems:
+- **DONE**: they've finished their thought / question and it's a good time for the bot to answer.
+- **NOT_DONE**: they're still typing, adding context, or clearly not finished.
+
+Return your decision in JSON format with two fields:
+{
+  "reasoning": "brief explanation of your decision",
+  "user_finished": true or false
+}
+"""
+
+
+class LLMResponseFormat(BaseModel):
+    reasoning: str
+    user_finished: bool
+
 
 ResponseCallback = Callable[[int], Awaitable[None]]
 
@@ -75,20 +95,22 @@ class DebounceHandler:
 
         try:
             response = await acompletion(
-                model="openrouter/openai/gpt-4o-mini", messages=messages
+                model="openrouter/openai/gpt-4o-mini",
+                messages=messages,
+                response_format=LLMResponseFormat,
             )
 
-            answer = response.choices[0].message.content.strip().lower()
-            is_done = answer == "yes"
+            message = response.choices[0].message
 
             log.debug(
                 "LLM idle check result",
                 channel_id=self.channel_id,
-                answer=answer,
-                is_done=is_done,
+                response=message,
             )
 
-            return is_done
+            content_json = json.loads(message.content)
+            return content_json.get("user_finished", False)
+
         except Exception as e:
             log.error(
                 "Failed to check if user is done",

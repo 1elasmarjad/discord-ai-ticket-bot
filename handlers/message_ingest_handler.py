@@ -79,6 +79,23 @@ class MessageIngestHandler:
         if not ticket_owner:
             return
 
+        # Check if any support staff has ever replied to this ticket
+        # If so, don't auto-respond (let humans handle it)
+        has_support_reply = False
+        for msg in self.ticket_channel.messages:
+            if msg.get("role") == "user":  # user messages contain MessageInput JSON
+                try:
+                    msg_input = MessageInput.model_validate_json(msg["content"])
+                    if msg_input.chat_role == "support":
+                        has_support_reply = True
+                        break
+                except (ValueError, KeyError):
+                    pass
+
+        if has_support_reply:
+            log.debug("Skipping debounce scheduling because support staff has replied")
+            return
+
         debounce = DebounceHandler(
             channel_id=self.ticket_channel.id,
             on_ready=_trigger_agent_response,
